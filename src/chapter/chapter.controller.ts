@@ -1,15 +1,40 @@
 import type { Request, Response } from "express";
-
 import { Chapter } from "./chapter.model.js";
+import { getContentFromAi, PromptInterface } from "../ai/ai.service.js";
+import {
+  getSystemPropmtForChapter,
+  getUserPropmtForChapter,
+} from "./chapter.prompt.js";
 
 export async function createChapter(req: Request, res: Response) {
   try {
-    const chapter = await Chapter.create(req.body);
+    const body = req.body;
+    const oldChapter = await Chapter.findOne({
+      name: body.name.toLowerCase(),
+      topic: body.topic,
+    }).populate("topic");
 
-    res.status(201).json({
-      message: "Chapter created successfully.",
-      data: chapter,
-    });
+    if (oldChapter) {
+      res.json(oldChapter);
+      return;
+    }
+
+    const prompt: PromptInterface = {
+      systemPrompt: getSystemPropmtForChapter(),
+      userPrompt: getUserPropmtForChapter(body.name),
+    };
+
+    const response = await getContentFromAi(prompt);
+
+    const payload = {
+      name: body.name,
+      topic: body.topic,
+      content: response,
+    };
+
+    const chapter = await Chapter.create(payload);
+    await chapter.populate({ path: "topic" });
+    res.send(chapter);
   } catch (error) {
     const message =
       error instanceof Error ? error.message : "Failed to create chapter.";

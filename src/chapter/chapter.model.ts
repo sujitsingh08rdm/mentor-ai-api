@@ -11,6 +11,7 @@ const chapterSchema = new mongoose.Schema(
       type: String,
       required: [true, "Chapter name is required."],
       trim: true,
+      lowercase: true,
     },
     content: {
       type: String,
