@@ -6,6 +6,7 @@ const topicSchema = new mongoose.Schema(
       type: String,
       required: [true, "Topic name is required."],
       trim: true,
+      lowercase: true,
     },
     description: {
       type: String,
@@ -16,13 +17,14 @@ const topicSchema = new mongoose.Schema(
       required: true,
       enum: ["beginner", "intermediate", "advanced"],
     },
-    langauge: {
+    language: {
       type: String,
-      required: true,
-      enum: ["hindi", "english", "hinglish"],
+      required: [true, "Topic language is required."],
+      enum: ["english", "hinglish"],
     },
+    chapters: [String],
   },
   { timestamps: true },
 );
 
-export const Topic = mongoose.model("Topic", topicSchema);
+export const TopicModel = mongoose.model("Topic", topicSchema);
